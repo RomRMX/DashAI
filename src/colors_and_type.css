@@ -1,0 +1,216 @@
+/* =====================================================================
+   RMXLABS — Core tokens (colors + type)
+   A synthesis of experiments. Vibecoded to existence.
+   ===================================================================== */
+
+/* ---------- Fonts ---------- */
+
+/* Industrial / stencil display face — the "LABS" wordmark vibe.
+   Chakra Petch (geo/industrial) + VT323 (CRT accents)
+   + Space Grotesk (body) + JetBrains Mono (metadata). */
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=VT323&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+@font-face {
+  font-family: "Lost in South";
+  src: url("/fonts/Lost in South.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- Colors — raw palette ---------- */
+  /* Primary — black. The whole system lives on ink. */
+  --ink-900: #000000;   /* true black — default ground */
+  --ink-800: #0a0a0c;   /* panel ground */
+  --ink-700: #111317;   /* raised panel */
+  --ink-600: #1a1d22;   /* hover panel */
+  --ink-500: #252930;   /* active / border-strong substrate */
+
+  /* Ash Grey — muted green/grey. Earthy, sophisticated, understated. */
+  --ash-100: #e8ebe5;
+  --ash-200: #d0d4ca;
+  --ash-300: #b4b8ab;   /* base */
+  --ash-400: #8c9086;
+  --ash-500: #656962;
+
+  /* Deep Space Blue — infinite, cosmic, ambition. */
+  --space-700: #0b1a24;
+  --space-600: #153243;  /* base */
+  --space-500: #1d4456;
+
+  /* Yale Blue — dependable, academic, prestige. */
+  --yale-600: #1e3a4d;
+  --yale-500: #284b63;   /* base */
+  --yale-400: #3a6684;
+  --yale-300: #5a87a5;
+
+  /* Ivory — luxurious, warm, quiet. */
+  --ivory-100: #f4f9e9;  /* base */
+  --ivory-200: #e4e9d8;
+
+  /* Parchment — ancient, heritage, timeless. */
+  --parchment-100: #eef0eb; /* base */
+  --parchment-200: #dcdfd7;
+  --parchment-300: #b9bdb1;
+
+  /* Accent signals — restrained, one-per-composition.
+     Rules: orange = identity + temporal pins (company tags, release dates, active state).
+            amber  = attention/freshness (New badges, pending).
+            red    = destructive only (delete confirmations). */
+  --signal-orange: #ff5a1f;
+  --signal-red:    #d94a3d;
+  --signal-amber:  #d9a43d;
+
+  /* ---------- Semantic surfaces ---------- */
+  --bg:        var(--ink-900);
+  --bg-alt:    var(--ink-800);
+  --bg-raised: var(--ink-700);
+  --bg-paper:  var(--ivory-100);
+  --bg-parchment: var(--parchment-100);
+
+  --fg:         var(--ivory-100);
+  --fg-muted:   var(--ash-300);
+  --fg-dim:     #7a7e77;       /* bumped from ash-500 (#656962, 3.6:1) to clear 4.5:1 on ink-900 */
+  --fg-inverse: var(--ink-900);
+
+  --accent:    var(--yale-500);      /* primary action */
+  --accent-2:  var(--space-600);     /* secondary / deep */
+  --accent-3:  var(--yale-300);      /* link / info */
+  --accent-4:  var(--ash-300);       /* highlight / muted */
+
+  --border:         rgba(244, 249, 233, 0.10);
+  --border-strong:  rgba(244, 249, 233, 0.22);
+  --border-inverse: rgba(0, 0, 0, 0.15);
+
+  --success: var(--ash-300);
+  --warn:    var(--signal-amber);
+  --danger:  var(--signal-red);
+  --info:    var(--yale-300);
+
+  /* ---------- Type — families ---------- */
+  --font-display: "Chakra Petch", "Eurostile", "Arial Narrow", sans-serif; /* industrial, LABS-wordmark vibe */
+  --font-body:    "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --font-crt:     "VT323", "JetBrains Mono", monospace;       /* 7-segment / terminal */
+  --font-category: "Lost in South", "Chakra Petch", sans-serif;
+
+  /* ---------- Type scale ---------- */
+  --fs-xs:    12px;
+  --fs-sm:    14px;
+  --fs-base:  16px;
+  --fs-md:    18px;
+  --fs-lg:    22px;
+  --fs-xl:    28px;
+  --fs-2xl:   36px;
+  --fs-3xl:   48px;
+  --fs-4xl:   64px;
+  --fs-5xl:   88px;
+  --fs-mega:  128px;
+
+  --lh-tight:  1.05;
+  --lh-snug:   1.2;
+  --lh-base:   1.5;
+  --lh-loose:  1.7;
+
+  --tracking-mega:   -0.03em;
+  --tracking-tight:  -0.01em;
+  --tracking-wide:    0.08em;
+  --tracking-widest:  0.22em;  /* stencil / wordmark spacing */
+
+  /* ---------- Spacing ---------- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px;
+
+  /* ---------- Radii ---------- */
+  --r-none: 0;
+  --r-sm: 2px;       /* rarely used — things are mostly sharp */
+  --r-md: 6px;
+  --r-lg: 12px;
+  --r-xl: 20px;      /* cassette/card radius */
+  --r-pill: 999px;
+  --r-rating: 22px;  /* specifically the IMG_9490 card shape */
+
+  /* ---------- Shadows + elevation ---------- */
+  --shadow-crisp: 0 1px 0 rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+  --shadow-lift:  0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.6);
+  --glow-orange:  0 0 24px rgba(255, 90, 31, 0.35);
+
+  /* ---------- Motion ---------- */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-snap: cubic-bezier(0.6, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 400ms;
+}
+
+/* =====================================================================
+   Semantic typography — use these classes directly
+   ===================================================================== */
+html { font-family: var(--font-body); color: var(--fg); background: var(--bg); }
+
+.h-mega, .h1, .h2, .h3, .h4, .eyebrow {
+  font-family: var(--font-display);
+  color: var(--fg);
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+
+.h-mega   { font-size: var(--fs-mega); font-weight: 700; letter-spacing: var(--tracking-mega); text-transform: uppercase; }
+.h1       { font-size: var(--fs-4xl);  font-weight: 700; letter-spacing: var(--tracking-tight); text-transform: uppercase; }
+.h2       { font-size: var(--fs-3xl);  font-weight: 600; letter-spacing: var(--tracking-tight); text-transform: uppercase; }
+.h3       { font-size: var(--fs-2xl);  font-weight: 600; letter-spacing: 0; }
+.h4       { font-size: var(--fs-xl);   font-weight: 500; letter-spacing: 0; }
+
+.eyebrow {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.p, p {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--fg);
+  margin: 0;
+}
+.p-sm  { font-size: var(--fs-sm); }
+.p-lg  { font-size: var(--fs-md); line-height: var(--lh-loose); }
+.p-dim { color: var(--fg-muted); }
+
+.mono, code, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  letter-spacing: 0;
+}
+
+.crt {
+  font-family: var(--font-crt);
+  letter-spacing: var(--tracking-wide);
+  color: var(--signal-orange);
+  text-shadow: 0 0 8px rgba(255, 90, 31, 0.5);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--fg-muted);
+}
+
+a { color: var(--accent-3); text-decoration: none; }
+a:hover { color: var(--yale-300); }
+
+hr { border: 0; border-top: 1px solid var(--border); margin: var(--sp-8) 0; }
+
+/* Selection */
+::selection { background: var(--signal-orange); color: var(--ink-900); }
+
+/* Scrollbar — keep gritty */
+* { scrollbar-width: thin; scrollbar-color: var(--gray-700) transparent; }
