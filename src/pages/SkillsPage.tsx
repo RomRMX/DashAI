@@ -486,7 +486,10 @@ export default function SkillsPage() {
                   : WIKI_CATEGORY_ORDER
                       .map(cat => ({ cat, items: cmdTerms.filter(t => t.category === cat) }))
                       .filter(g => g.items.length > 0)
-                      .map(g => <WikiCategoryGroup key={g.cat} category={g.cat} terms={g.items} onEdit={t => setTermDialog(t)} onDelete={deleteTerm} editMode={editMode} />)
+                      .map(g => g.cat === 'general'
+                        ? g.items.map(t => <TermEntry key={t.id} term={t} onEdit={() => setTermDialog(t)} onDelete={() => deleteTerm(t.id)} editMode={editMode} alwaysOpen={true} />)
+                        : <WikiCategoryGroup key={g.cat} category={g.cat} terms={g.items} onEdit={t => setTermDialog(t)} onDelete={deleteTerm} editMode={editMode} />
+                      )
                 }
               </div>
             </div>

@@ -4,7 +4,7 @@ import type { YouTubeChannel, YouTubeVideo } from '../types/youtube';
 import { uid, now } from '../lib/utils';
 
 const SEED_KEY = 'aitoolbox:channels:version';
-const SEED_VERSION = '2';
+const SEED_VERSION = '3';
 
 export function useYouTube() {
   const { items: channels, save: saveChannels } = useLocalStorage<YouTubeChannel>('aitoolbox:channels', []);

@@ -7,7 +7,6 @@ import { formatDate, uid, now } from '../lib/utils';
 import EmptyState from '../components/ui/EmptyState';
 
 const COMPANIES = ['Anthropic', 'Claude Code'];
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 const NUGGET_KEY = 'aitoolbox:nuggets';
 
 type ReleaseTab = 'feed' | 'nugget';
@@ -22,10 +21,6 @@ type Nugget = {
   releaseDate?: string;
   description?: string;
 };
-
-function isNew(createdAt: string): boolean {
-  return Date.now() - new Date(createdAt).getTime() < SEVEN_DAYS;
-}
 
 function loadNuggets(): Nugget[] {
   try { const s = localStorage.getItem(NUGGET_KEY); if (s) return JSON.parse(s); } catch {}
@@ -48,16 +43,10 @@ function ReleaseCard({ release, onEdit, onDelete: _onDelete, editMode }: { relea
       onClick={handleCardClick}
       style={{ position: 'relative', padding: '14px 14px', borderBottom: '1px solid var(--border)', cursor: release.link ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', gap: 8 }}
     >
-      <div style={{ display: 'flex', gap: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{release.name}</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-            <span style={{ fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(release.releaseDate)}</span>
-            <span className="stencil" style={{ fontSize: 9 }}>{release.company}</span>
-            {isNew(release.createdAt) && <span className="stencil" style={{ fontSize: 9 }}>New</span>}
-            {editMode && <button className="btn-icon" onClick={e => { e.stopPropagation(); onEdit(); }} aria-label="Edit" style={{ fontSize: 14, opacity: 0.5 }}>✎</button>}
-          </div>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{release.name}</h2>
+        <span style={{ flexShrink: 0, fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(release.releaseDate)}</span>
+        {editMode && <button className="btn-icon" onClick={e => { e.stopPropagation(); onEdit(); }} aria-label="Edit" style={{ fontSize: 14, opacity: 0.5, flexShrink: 0 }}>✎</button>}
       </div>
       {release.description && (
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--fg-muted)', lineHeight: 1.5, margin: 0 }}>{release.description}</p>
@@ -76,15 +65,9 @@ function NuggetCard({ nugget, onDelete: _onDelete }: { nugget: Nugget; onDelete:
         onClick={handleClick}
         style={{ position: 'relative', padding: '14px 14px', borderBottom: '1px solid var(--border)', cursor: nugget.source ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', gap: 8 }}
       >
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{nugget.name}</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
-              {nugget.releaseDate && <span style={{ fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(nugget.releaseDate)}</span>}
-              {nugget.company && <span className="stencil" style={{ fontSize: 9 }}>{nugget.company}</span>}
-              {isNew(nugget.createdAt) && <span className="stencil" style={{ fontSize: 9 }}>New</span>}
-            </div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{nugget.name}</h2>
+          {nugget.releaseDate && <span style={{ flexShrink: 0, fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(nugget.releaseDate)}</span>}
         </div>
         {nugget.description && (
           <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--fg-muted)', lineHeight: 1.5, margin: 0 }}>{nugget.description}</p>

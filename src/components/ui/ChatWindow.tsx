@@ -197,11 +197,17 @@ export default function ChatWindow({ onClose }: { onClose: () => void }) {
   useEffect(() => { if (apiKey) setTimeout(() => inputRef.current?.focus(), 0); }, [apiKey]);
 
   const saveKey = () => {
-    const k = keyInput.trim();
+    // Strip ALL whitespace (including middle), curly quotes, and surrounding quote chars
+    const k = keyInput.replace(/\s+/g, '').replace(/[\u201C\u201D\u2018\u2019]/g, '').replace(/^["']|["']$/g, '');
     if (!k) return;
+    if (!k.startsWith('sk-ant-')) {
+      setError(`Key should start with "sk-ant-". Got: "${k.slice(0, 10)}..."`);
+      return;
+    }
     localStorage.setItem(API_KEY_STORAGE, k);
     setApiKey(k);
     setKeyInput('');
+    setError(null);
   };
 
   const send = useCallback(async () => {
@@ -319,6 +325,9 @@ export default function ChatWindow({ onClose }: { onClose: () => void }) {
           <button className="btn btn-primary" style={{ width: '100%' }} onClick={saveKey}>
             Connect
           </button>
+          {error && (
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--signal-red)', textAlign: 'center', margin: 0 }}>{error}</p>
+          )}
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--fg-dim)', textAlign: 'center', margin: 0, letterSpacing: '0.06em' }}>
             STORED IN LOCALSTORAGE · NEVER TRANSMITTED ELSEWHERE
           </p>
