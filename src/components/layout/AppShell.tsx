@@ -15,7 +15,7 @@ const COLUMNS: Array<{ label: string; Component: React.ComponentType; flex: numb
   { label: 'Projects', Component: ProjectsPage, flex: 1.5 },
 ];
 
-const FLOW_H = 325;
+const FLOW_H = 250;
 const LAST_VISIT_KEY = 'aitoolbox:lastVisit';
 
 /* ---- helpers ---- */
@@ -118,8 +118,8 @@ export default function AppShell() {
       <header style={{ height: 70, padding: '0 14px', borderBottom: '3px solid var(--border-strong)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
           <span style={{ lineHeight: 1, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <img src="/rmxlabs_logo2x%202.png" alt="" style={{ height: 35.28, width: 'auto', display: 'block' }} />
-            <span style={{ fontFamily: 'var(--font-category)', fontSize: 27.72, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--signal-orange)' }}>RMXLABS</span>
+            <img src="/rmxlabs_logo2x%202.png" alt="" style={{ height: 26.46, width: 'auto', display: 'block' }} />
+            <span style={{ fontFamily: 'var(--font-category)', fontSize: 34.65, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--signal-orange)' }}>RMXLABS</span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 11.25, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg)' }}>AI.Dashboard</span>
           </span>
           {newCount > 0 && (
@@ -182,7 +182,7 @@ export default function AppShell() {
 
         {/* Flow — bottom horizontal strip */}
         {!flowExpanded && (
-          <div style={{ height: flowHeight, borderTop: '1px solid var(--border)', flexShrink: 0, position: 'relative', background: 'var(--ink-900)' }}>
+          <div style={{ height: flowHeight, borderTop: '3px solid var(--border-strong)', flexShrink: 0, position: 'relative', background: 'var(--ink-900)' }}>
             <div
               onMouseDown={onResizeMouseDown}
               style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, cursor: 'ns-resize', zIndex: 10 }}

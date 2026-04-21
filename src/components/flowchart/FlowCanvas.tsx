@@ -526,8 +526,8 @@ export default function FlowCanvas({ expanded, onToggleExpand }: Props) {
               <rect
                 width={NODE_W} height={NODE_H} rx={0}
                 fill="var(--ink-700)"
-                stroke={node.id === connecting ? '#4a90d9' : 'var(--signal-orange)'}
-                strokeWidth={selectedIds.has(node.id) || node.id === connecting ? 2 : 0.5}
+                stroke={node.id === connecting ? '#4a90d9' : 'var(--ash-400)'}
+                strokeWidth={selectedIds.has(node.id) || node.id === connecting ? 2 : 0.25}
                 style={{ cursor: tool === 'select' ? 'move' : 'pointer' }}
                 onClick={e => onNodeClick(e, node.id)}
                 onMouseDown={e => onNodeMouseDown(e, node.id)}
@@ -536,16 +536,16 @@ export default function FlowCanvas({ expanded, onToggleExpand }: Props) {
               <foreignObject x={0} y={0} width={NODE_W} height={NODE_H} style={{ pointerEvents: 'none' }}>
                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
                   {editing === node.id ? (
-                    <input
+                    <textarea
                       autoFocus
                       defaultValue={node.label}
                       onBlur={e => commitNodeEdit(node.id, e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }}
+                      onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.currentTarget.blur(); } e.stopPropagation(); }}
                       onClick={e => e.stopPropagation()}
-                      style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--fg)', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.06em', textAlign: 'center', textTransform: 'uppercase', padding: '0 6px', boxSizing: 'border-box', pointerEvents: 'all' }}
+                      style={{ width: '100%', height: '100%', background: 'transparent', border: 'none', outline: 'none', color: 'var(--fg)', fontFamily: 'var(--font-display)', fontSize: 11, letterSpacing: '0.06em', textAlign: 'center', textTransform: 'uppercase', padding: '0 6px', boxSizing: 'border-box', pointerEvents: 'all', resize: 'none', overflow: 'hidden', lineHeight: 1.15 }}
                     />
                   ) : (
-                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: NODE_W - 12, userSelect: 'none' }}>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', whiteSpace: 'pre-line', overflow: 'hidden', maxWidth: NODE_W - 12, userSelect: 'none', textAlign: 'center', lineHeight: 1.15 }}>
                       {node.label}
                     </span>
                   )}
@@ -554,10 +554,16 @@ export default function FlowCanvas({ expanded, onToggleExpand }: Props) {
             </g>
           ))}
 
-          {texts.map(t => (
+          {texts.map(t => {
+            const lines = t.text.split('\n');
+            const maxLen = lines.reduce((m, l) => Math.max(m, l.length), 0);
+            const rectW = Math.max(80, maxLen * 7 + 8);
+            const rectH = Math.max(20, lines.length * 14 + 6);
+            const editH = Math.max(24, lines.length * 14 + 12);
+            return (
             <g key={t.id} transform={`translate(${t.x},${t.y})`}>
               <rect
-                x={-4} y={-14} width={Math.max(80, t.text.length * 7 + 8)} height={20}
+                x={-4} y={-14} width={rectW} height={rectH}
                 fill="transparent"
                 stroke={selectedIds.has(t.id) ? 'var(--signal-orange)' : 'transparent'}
                 strokeWidth={1}
@@ -568,25 +574,28 @@ export default function FlowCanvas({ expanded, onToggleExpand }: Props) {
                 onDoubleClick={e => onDoubleClickText(e, t.id)}
               />
               {editingText === t.id ? (
-                <foreignObject x={-4} y={-16} width={200} height={24}>
-                  <input
+                <foreignObject x={-4} y={-16} width={Math.max(200, rectW + 40)} height={Math.max(editH, 80)}>
+                  <textarea
                     autoFocus
                     defaultValue={t.text}
                     onBlur={e => commitTextEdit(t.id, e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') setEditingText(null); e.stopPropagation(); }}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.currentTarget.blur(); } if (e.key === 'Escape') setEditingText(null); e.stopPropagation(); }}
                     onClick={e => e.stopPropagation()}
-                    style={{ background: 'var(--ink-800)', border: '1px solid var(--signal-orange)', outline: 'none', color: 'var(--fg)', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', padding: '2px 4px', width: '100%', boxSizing: 'border-box' }}
+                    style={{ background: 'var(--ink-800)', border: '1px solid var(--signal-orange)', outline: 'none', color: 'var(--fg)', fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', padding: '2px 4px', width: '100%', height: '100%', boxSizing: 'border-box', resize: 'none', lineHeight: '14px' }}
                   />
                 </foreignObject>
               ) : (
                 <text x={0} y={0} textAnchor="start" dominantBaseline="auto" fill="var(--fg-muted)"
                   fontFamily="var(--font-mono)" fontSize={11} letterSpacing="0.08em"
                   style={{ pointerEvents: 'none', userSelect: 'none' }}>
-                  {t.text}
+                  {lines.map((line, i) => (
+                    <tspan key={i} x={0} dy={i === 0 ? 0 : 14}>{line || ' '}</tspan>
+                  ))}
                 </text>
               )}
             </g>
-          ))}
+            );
+          })}
 
           {marquee && (
             <rect
