@@ -1,10 +1,25 @@
+import { useEffect, useRef } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import type { AISkill, AIConnector } from '../types/skills';
 import { uid, now } from '../lib/utils';
 
+const SEED_KEY = 'aitoolbox:skills:version';
+const SEED_VERSION = '1';
+
 export function useSkills() {
   const { items: skills, save: saveSkills } = useLocalStorage<AISkill>('aitoolbox:skills', []);
   const { items: connectors, save: saveConnectors } = useLocalStorage<AIConnector>('aitoolbox:connectors', []);
+  const seededRef = useRef(false);
+
+  useEffect(() => {
+    if (seededRef.current) return;
+    seededRef.current = true;
+    if (localStorage.getItem(SEED_KEY) === SEED_VERSION) return;
+    saveSkills([]);
+    saveConnectors([]);
+    localStorage.setItem(SEED_KEY, SEED_VERSION);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const addSkill = (data: Omit<AISkill, 'id' | 'createdAt'>) => {
     saveSkills([{ ...data, id: uid(), createdAt: now() }, ...skills]);
