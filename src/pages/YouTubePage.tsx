@@ -75,7 +75,7 @@ function VideoCard({ video, onEdit, onDelete, onWatch, onRate, editMode }: { vid
           }
         </div>
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 2 }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{video.channelName}</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{video.channelName}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {video.watchedAt && <span className="stencil" style={{ fontSize: 9, flexShrink: 0 }}>Watched</span>}
             <StarRating value={video.rating || 0} onChange={onRate} />
@@ -112,7 +112,7 @@ function ChannelCard({ channel, onEdit, onDelete, onRate, editMode }: { channel:
       }}
     >
       <div style={{ flexShrink: 0, width: 32, height: 32, background: 'var(--ink-800)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 700, color: 'var(--fg-dim)', letterSpacing: '0.04em' }}>{initial}</div>
-      <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>{channel.channelName}</h2>
+      <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>{channel.channelName}</h2>
       <StarRating value={channel.rating || 0} onChange={onRate} />
       {editMode && (
         <div style={{ display: 'flex', marginLeft: 'auto', flexShrink: 0 }}>
@@ -184,7 +184,7 @@ export default function YouTubePage() {
   const [tab, setTab] = useState<Tab>('videos');
   const [videoEditDialog, setVideoEditDialog] = useState<YouTubeVideo | null>(null);
   const [channelEditDialog, setChannelEditDialog] = useState<YouTubeChannel | null>(null);
-  const [editMode, setEditMode] = useState(false);
+  const editMode = false;
   const [displayNewCount, setDisplayNewCount] = useState(0);
   const [videoPasteInput, setVideoPasteInput] = useState('');
   const [videoPasteStatus, setVideoPasteStatus] = useState<'idle' | 'loading'>('idle');
@@ -217,22 +217,6 @@ export default function YouTubePage() {
     setChannelAddOpen(false);
   };
 
-  const handleTabAdd = () => {
-    if (tab === 'videos') {
-      setVideoAddOpen(o => {
-        const next = !o;
-        if (next) setTimeout(() => videoPasteRef.current?.focus(), 0);
-        return next;
-      });
-    } else {
-      setChannelAddOpen(o => {
-        const next = !o;
-        if (next) setTimeout(() => channelPasteRef.current?.focus(), 0);
-        return next;
-      });
-    }
-  };
-
   const handleYouTubePoll = useCallback(async () => {
     // 1. Refresh metadata for existing videos
     const metaMap = await refreshVideoMetadata(videos);
@@ -260,6 +244,17 @@ export default function YouTubePage() {
     onPoll: handleYouTubePoll,
   });
 
+  // Agent action listener
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      if (type === 'youtube:add-video') addVideo(data);
+      if (type === 'youtube:add-channel') addChannel(data);
+    };
+    window.addEventListener('aitoolbox:agent-action', handler);
+    return () => window.removeEventListener('aitoolbox:agent-action', handler);
+  }, [addVideo, addChannel]);
+
   // Show "N new" badge briefly after each successful poll
   useEffect(() => {
     if (newCount > 0) {
@@ -283,10 +278,6 @@ export default function YouTubePage() {
           {displayNewCount > 0 && (
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--signal-amber)', letterSpacing: '0.05em' }}>● {displayNewCount} new</span>
           )}
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className={editMode ? 'btn btn-primary' : 'btn btn-ghost'} style={{ fontSize: 9, padding: '3px 10px' }} onClick={() => setEditMode(e => !e)}>Edit</button>
-          <button className="btn btn-primary" style={{ fontSize: 9, padding: '3px 10px' }} onClick={handleTabAdd}>Add</button>
         </div>
       </div>
 

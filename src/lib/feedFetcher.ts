@@ -13,8 +13,6 @@ export interface FeedSource {
 
 export const RELEASE_FEEDS: FeedSource[] = [
   { company: 'Anthropic', url: 'https://www.anthropic.com/rss.xml' },
-  { company: 'OpenAI',    url: 'https://openai.com/blog/rss.xml' },
-  { company: 'Google',    url: 'https://deepmind.google/blog/rss/' },
 ];
 
 interface Rss2JsonItem {
@@ -110,6 +108,27 @@ export function extractChannelId(channelUrl: string): string | null {
   return m ? m[1] : null;
 }
 
+const channelIdCache = new Map<string, string>();
+
+async function resolveChannelId(channelUrl: string): Promise<string | null> {
+  const direct = extractChannelId(channelUrl);
+  if (direct) return direct;
+
+  if (channelIdCache.has(channelUrl)) return channelIdCache.get(channelUrl)!;
+
+  try {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(channelUrl));
+    if (!res.ok) return null;
+    const html = await res.text();
+    const m = html.match(/"channelId":"(UC[A-Za-z0-9_-]+)"/);
+    if (m) {
+      channelIdCache.set(channelUrl, m[1]);
+      return m[1];
+    }
+  } catch {}
+  return null;
+}
+
 export async function fetchOembedMeta(videoUrl: string): Promise<{ title: string; channelName: string } | null> {
   try {
     const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(videoUrl)}&format=json`);
@@ -146,7 +165,7 @@ export async function fetchChannelVideos(
   channel: YouTubeChannel,
   existingUrls: Set<string>
 ): Promise<Array<Omit<YouTubeVideo, 'id' | 'createdAt'>>> {
-  const channelId = extractChannelId(channel.channelUrl);
+  const channelId = await resolveChannelId(channel.channelUrl);
   if (!channelId) return [];
 
   try {

@@ -5,6 +5,8 @@ import YouTubePage from '../../pages/YouTubePage';
 import ProjectsPage from '../../pages/ProjectsPage';
 import FlowCanvas from '../flowchart/FlowCanvas';
 import CommandPalette from '../ui/CommandPalette';
+import ChatWindow from '../ui/ChatWindow';
+import ComponentLibraryPage from '../../pages/ComponentLibraryPage';
 
 const COLUMNS: Array<{ label: string; Component: React.ComponentType; flex: number }> = [
   { label: 'Releases', Component: ReleasesPage, flex: 1 },
@@ -56,6 +58,8 @@ function exportData() {
 export default function AppShell() {
   const [flowExpanded, setFlowExpanded] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [libOpen, setLibOpen] = useState(false);
   const [flowHeight, setFlowHeight] = useState(FLOW_H);
   const resizeRef = useRef<{ startY: number; startH: number } | null>(null);
 
@@ -111,12 +115,12 @@ export default function AppShell() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       {/* Header */}
-      <header style={{ height: 80, padding: '0 14px', borderBottom: '1px solid var(--border)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <header style={{ height: 70, padding: '0 14px', borderBottom: '3px solid var(--border-strong)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
           <span style={{ lineHeight: 1, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <img src="/rmxlabs_logo2x%202.png" alt="" style={{ height: 28, width: 'auto', display: 'block' }} />
-            <span style={{ fontFamily: 'var(--font-category)', fontSize: 22, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--signal-orange)' }}>RMXLABS</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg)' }}>AI.Dashboard</span>
+            <img src="/rmxlabs_logo2x%202.png" alt="" style={{ height: 35.28, width: 'auto', display: 'block' }} />
+            <span style={{ fontFamily: 'var(--font-category)', fontSize: 27.72, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'var(--signal-orange)' }}>RMXLABS</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 11.25, fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg)' }}>AI.Dashboard</span>
           </span>
           {newCount > 0 && (
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--signal-amber)', letterSpacing: '0.04em', flexShrink: 0 }}>
@@ -126,6 +130,20 @@ export default function AppShell() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: 10, padding: '5px 12px', letterSpacing: '0.12em' }}
+            onClick={() => setChatOpen(o => !o)}
+          >
+            CHAT W/ RMX.AI
+          </button>
+          <button
+            className="btn btn-ghost"
+            style={{ fontSize: 10, padding: '5px 12px', letterSpacing: '0.12em' }}
+            onClick={() => setLibOpen(o => !o)}
+          >
+            UI
+          </button>
           <button
             className="btn btn-ghost"
             style={{ fontSize: 10, padding: '5px 12px', letterSpacing: '0.12em', background: 'var(--ink-800)', borderColor: 'var(--border-strong)' }}
@@ -164,7 +182,7 @@ export default function AppShell() {
 
         {/* Flow — bottom horizontal strip */}
         {!flowExpanded && (
-          <div style={{ height: flowHeight, borderTop: '1px solid var(--border)', flexShrink: 0, position: 'relative' }}>
+          <div style={{ height: flowHeight, borderTop: '1px solid var(--border)', flexShrink: 0, position: 'relative', background: 'var(--ink-900)' }}>
             <div
               onMouseDown={onResizeMouseDown}
               style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 6, cursor: 'ns-resize', zIndex: 10 }}
@@ -183,6 +201,12 @@ export default function AppShell() {
 
       {/* Command palette */}
       {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} />}
+
+      {/* Chat window */}
+      {chatOpen && <ChatWindow onClose={() => setChatOpen(false)} />}
+
+      {/* Component library */}
+      {libOpen && <ComponentLibraryPage onClose={() => setLibOpen(false)} />}
     </div>
   );
 }

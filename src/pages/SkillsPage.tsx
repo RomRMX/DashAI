@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSkills } from '../hooks/useSkills';
 import { useDictionary } from '../hooks/useDictionary';
 import type { AISkill, SkillCategory } from '../types/skills';
@@ -58,8 +58,7 @@ function SkillCard({ skill, onEdit, onDelete, onRate, editMode }: { skill: AISki
     >
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>{skill.toolName}</h2>
-          <span className="stencil" style={{ fontSize: 9, flexShrink: 0 }}>{skill.category}</span>
+          <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>{skill.toolName}</h2>
           <div onClick={e => e.stopPropagation()} style={{ display: 'inline-flex', gap: 2, lineHeight: 1, flexShrink: 0 }}>
             {[1, 2, 3].map(n => (
               <button key={n} onClick={e => { e.stopPropagation(); onRate(skill.rating === n ? 0 : n); }} aria-label={`Rate ${n}`} style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: n <= (skill.rating ?? 0) ? 'var(--signal-amber)' : 'var(--ash-500)', fontSize: 14, lineHeight: 1 }}>{n <= (skill.rating ?? 0) ? '★' : '☆'}</button>
@@ -87,7 +86,7 @@ function ResourceCard({ resource, onEdit, onDelete, editMode }: { resource: Reso
       style={{ padding: '14px 14px', borderBottom: '1px solid var(--border)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 4, position: 'relative' }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', margin: 0 }}>{resource.name}</h2>
+        <h2 style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', margin: 0 }}>{resource.name}</h2>
         {editMode && (
           <div style={{ display: 'flex', marginLeft: 'auto', flexShrink: 0 }}>
             <button className="btn-icon" onClick={e => { e.stopPropagation(); onEdit(); }} aria-label="Edit" style={{ fontSize: 14, opacity: 0.5, minWidth: 20, minHeight: 20, padding: 2 }}>✎</button>
@@ -305,7 +304,6 @@ export default function SkillsPage() {
   const { terms, addTerm, updateTerm, deleteTerm } = useDictionary();
   const [tab, setTab] = useState<Tab>('tools');
   const [subTab, setSubTab] = useState<SubTab>('skills');
-  const [catFilter, setCatFilter] = useState<SkillCategory | 'all'>('all');
   const [skillDialog, setSkillDialog] = useState<{ open: boolean; editing?: AISkill }>({ open: false });
   const [resources, setResources] = useState<Resource[]>(loadResources);
   const [tips, setTips] = useState<Tip[]>(loadTips);
@@ -319,7 +317,7 @@ export default function SkillsPage() {
   const [cmdAddOpen, setCmdAddOpen] = useState(false);
   const [wikiAddOpen, setWikiAddOpen] = useState(false);
   const [tipAddOpen, setTipAddOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const editMode = false;
   const [termDialog, setTermDialog] = useState<DictionaryTerm | null>(null);
   const [tipDialog, setTipDialog] = useState<Tip | null>(null);
   const [resourceDialog, setResourceDialog] = useState<Resource | null>(null);
@@ -328,8 +326,32 @@ export default function SkillsPage() {
   const cmdRef = useRef<HTMLInputElement>(null);
   const wikiRef = useRef<HTMLInputElement>(null);
   const tipRef = useRef<HTMLInputElement>(null);
+  const tipsRef = useRef(tips);
+  tipsRef.current = tips;
+  const resourcesRef = useRef(resources);
+  resourcesRef.current = resources;
 
-  const filteredSkills = (catFilter === 'all' ? skills : skills.filter(s => s.category === catFilter))
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      if (type === 'skills:add') addSkill(data);
+      if (type === 'dictionary:add') addTerm(data);
+      if (type === 'tips:add') {
+        const updated = [...tipsRef.current, { id: uid(), text: data.text as string, createdAt: now() }];
+        setTips(updated);
+        saveTips(updated);
+      }
+      if (type === 'resources:add') {
+        const updated = [{ id: uid(), name: data.name as string, url: data.url as string, description: data.description as string | undefined, createdAt: now() }, ...resourcesRef.current];
+        setResources(updated);
+        saveResources(updated);
+      }
+    };
+    window.addEventListener('aitoolbox:agent-action', handler);
+    return () => window.removeEventListener('aitoolbox:agent-action', handler);
+  }, [addSkill, addTerm]);
+
+  const filteredSkills = skills
     .slice()
     .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
 
@@ -354,8 +376,7 @@ export default function SkillsPage() {
     const toolName = isUrl
       ? trimmed.replace(/^https?:\/\//, '').split('/')[0].replace(/^www\./, '')
       : trimmed;
-    const category: SkillCategory = catFilter === 'all' ? 'other' : catFilter;
-    addSkill({ toolName, description: '', category, useCase: '', link: isUrl ? trimmed : undefined, rating: 0 });
+    addSkill({ toolName, description: '', category: 'other', useCase: '', link: isUrl ? trimmed : undefined, rating: 0 });
     setSkillPasteInput('');
     setSkillAddOpen(false);
   };
@@ -387,22 +408,6 @@ export default function SkillsPage() {
     setTipAddOpen(false);
   };
 
-  const toggleOpen = (setter: React.Dispatch<React.SetStateAction<boolean>>, ref: React.RefObject<HTMLInputElement | null>) => {
-    setter(o => {
-      const next = !o;
-      if (next) setTimeout(() => ref.current?.focus(), 0);
-      return next;
-    });
-  };
-
-  const handleTabAdd = () => {
-    if (tab === 'resources') { toggleOpen(setResAddOpen, resPasteRef); return; }
-    if (subTab === 'skills') toggleOpen(setSkillAddOpen, skillPasteRef);
-    else if (subTab === 'cmd') toggleOpen(setCmdAddOpen, cmdRef);
-    else if (subTab === 'wiki') toggleOpen(setWikiAddOpen, wikiRef);
-    else if (subTab === 'tips') toggleOpen(setTipAddOpen, tipRef);
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
@@ -411,10 +416,6 @@ export default function SkillsPage() {
         <h2 style={{ fontFamily: 'var(--font-category)', fontSize: 20, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
           {tab === 'tools' ? 'Tools' : 'Resources'}
         </h2>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className={editMode ? 'btn btn-primary' : 'btn btn-ghost'} style={{ fontSize: 9, padding: '3px 10px' }} onClick={() => setEditMode(e => !e)}>Edit</button>
-          <button className="btn btn-primary" style={{ fontSize: 9, padding: '3px 10px' }} onClick={handleTabAdd}>Add</button>
-        </div>
       </div>
 
       {/* Main tab bar */}
@@ -459,10 +460,6 @@ export default function SkillsPage() {
                   style={{ margin: '10px 14px 0' }}
                 />
               )}
-              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', padding: '10px 14px 0' }}>
-                <button className={catFilter === 'all' ? 'btn btn-primary' : 'btn btn-ghost'} style={{ padding: '3px 8px', fontSize: 10 }} onClick={() => setCatFilter('all')}>All</button>
-                {CATEGORIES.map(c => <button key={c} className={catFilter === c ? 'btn btn-primary' : 'btn btn-ghost'} style={{ padding: '3px 8px', fontSize: 10 }} onClick={() => setCatFilter(c)}>{c}</button>)}
-              </div>
               <div className="scroll-edge" style={{ overflow: 'auto', flex: 1, marginTop: 10 }}>
                 {filteredSkills.map(s => <SkillCard key={s.id} skill={s} onEdit={() => setSkillDialog({ open: true, editing: s })} onDelete={() => deleteSkill(s.id)} onRate={r => setRating(s.id, r)} editMode={editMode} />)}
               </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useReleases } from '../hooks/useReleases';
 import { useFeedPolling } from '../hooks/useFeedPolling';
 import { fetchNewReleases } from '../lib/feedFetcher';
@@ -6,7 +6,7 @@ import type { AIRelease } from '../types/releases';
 import { formatDate, uid, now } from '../lib/utils';
 import EmptyState from '../components/ui/EmptyState';
 
-const COMPANIES = ['Anthropic', 'Google', 'OpenAI'];
+const COMPANIES = ['Anthropic', 'Claude Code'];
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 const NUGGET_KEY = 'aitoolbox:nuggets';
 
@@ -50,7 +50,7 @@ function ReleaseCard({ release, onEdit, onDelete: _onDelete, editMode }: { relea
     >
       <div style={{ display: 'flex', gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{release.name}</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{release.name}</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
             <span style={{ fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(release.releaseDate)}</span>
             <span className="stencil" style={{ fontSize: 9 }}>{release.company}</span>
@@ -78,7 +78,7 @@ function NuggetCard({ nugget, onDelete: _onDelete }: { nugget: Nugget; onDelete:
       >
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{nugget.name}</h2>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{nugget.name}</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 6 }}>
               {nugget.releaseDate && <span style={{ fontFamily: 'var(--font-crt)', fontSize: 13, color: 'var(--signal-orange)', letterSpacing: '0.1em' }}>{formatDate(nugget.releaseDate)}</span>}
               {nugget.company && <span className="stencil" style={{ fontSize: 9 }}>{nugget.company}</span>}
@@ -147,12 +147,13 @@ function ReleaseDialog({ initial, onSave, onClose }: { initial?: Partial<AIRelea
 export default function ReleasesPage() {
   const { releases, addRelease, updateRelease, deleteRelease, mergeFromFeed } = useReleases();
   const [tab, setTab] = useState<ReleaseTab>('feed');
-  const [dialog, setDialog] = useState(false);
   const [editingRelease, setEditingRelease] = useState<AIRelease | null>(null);
   const [nuggets, setNuggets] = useState<Nugget[]>(loadNuggets);
   const [nuggetDragOver, setNuggetDragOver] = useState(false);
   const editMode = false;
   const [displayNewCount, setDisplayNewCount] = useState(0);
+  const nuggetsRef = useRef(nuggets);
+  nuggetsRef.current = nuggets;
 
   const handlePoll = useCallback(async () => {
     const incoming = await fetchNewReleases(releases);
@@ -163,6 +164,21 @@ export default function ReleasesPage() {
     key: 'aitoolbox:poll:releases',
     onPoll: handlePoll,
   });
+
+  // Agent action listener
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      if (type === 'releases:add') addRelease(data);
+      if (type === 'nuggets:add') {
+        const updated = [{ id: uid(), text: data.text as string, source: data.source as string | undefined, createdAt: now() }, ...nuggetsRef.current];
+        setNuggets(updated);
+        saveNuggets(updated);
+      }
+    };
+    window.addEventListener('aitoolbox:agent-action', handler);
+    return () => window.removeEventListener('aitoolbox:agent-action', handler);
+  }, [addRelease]);
 
   // Show "N new" badge briefly after each successful poll
   useEffect(() => {
@@ -238,7 +254,7 @@ export default function ReleasesPage() {
       {/* FEED */}
       {tab === 'feed' && (
         displayed.length === 0
-          ? <EmptyState label="No releases found" action="Add" onAction={() => setDialog(true)} />
+          ? <EmptyState label="No releases found" />
           : <div className="scroll-edge" style={{ overflow: 'auto', flex: 1 }}>
               {displayed.map(r => <ReleaseCard key={r.id} release={r} onEdit={() => setEditingRelease(r)} onDelete={() => deleteRelease(r.id)} editMode={editMode} />)}
             </div>
@@ -256,7 +272,6 @@ export default function ReleasesPage() {
         </div>
       )}
 
-      {dialog && <ReleaseDialog onSave={data => { addRelease(data); setDialog(false); }} onClose={() => setDialog(false)} />}
       {editingRelease && <ReleaseDialog initial={editingRelease} onSave={data => { updateRelease(editingRelease.id, data); setEditingRelease(null); }} onClose={() => setEditingRelease(null)} />}
     </div>
   );

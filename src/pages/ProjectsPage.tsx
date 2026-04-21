@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { uid, now } from '../lib/utils';
 
 const KEY = 'aitoolbox:projects';
@@ -88,7 +88,7 @@ function ProjectCard({ project, onEdit, onDelete, editMode }: { project: Project
       <ProjectIcon name={project.name} />
       <div style={{ flex: 1, minWidth: 0, paddingRight: 40 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{project.name}</h2>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--fg)', lineHeight: 1.2, margin: 0 }}>{project.name}</h2>
           <span className={`stencil${project.status === 'live' ? ' green' : ''}`} style={{ fontSize: 9 }}>{project.status}</span>
         </div>
         {project.description && (
@@ -156,8 +156,23 @@ export default function ProjectsPage() {
   const [dialog, setDialog] = useState<{ open: boolean; editing?: Project }>({ open: false });
   const [addInput, setAddInput] = useState('');
   const [addOpen, setAddOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const editMode = false;
   const addRef = useRef<HTMLInputElement>(null);
+
+  const projectsRef = useRef(projects);
+  projectsRef.current = projects;
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type, data } = (e as CustomEvent).detail;
+      if (type !== 'projects:add') return;
+      const updated = [{ ...data, id: uid(), createdAt: now() }, ...projectsRef.current];
+      setProjects(updated);
+      persist(updated);
+    };
+    window.addEventListener('aitoolbox:agent-action', handler);
+    return () => window.removeEventListener('aitoolbox:agent-action', handler);
+  }, []);
 
   const displayed = tab === 'all' ? projects : projects.filter(p => p.category === tab);
 
@@ -193,24 +208,12 @@ export default function ProjectsPage() {
     setAddOpen(false);
   };
 
-  const toggleAdd = () => {
-    setAddOpen(o => {
-      const next = !o;
-      if (next) setTimeout(() => addRef.current?.focus(), 0);
-      return next;
-    });
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 14px', background: 'var(--ink-700)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <h2 style={{ fontFamily: 'var(--font-category)', fontSize: 20, fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
           Projects
         </h2>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className={editMode ? 'btn btn-primary' : 'btn btn-ghost'} style={{ fontSize: 9, padding: '3px 10px' }} onClick={() => setEditMode(e => !e)}>Edit</button>
-          <button className="btn btn-primary" style={{ fontSize: 9, padding: '3px 10px' }} onClick={toggleAdd}>Add</button>
-        </div>
       </div>
 
       <div className="folder-tabs">
